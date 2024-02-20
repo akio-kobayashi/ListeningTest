@@ -1,11 +1,14 @@
 import flet as ft
 import pandas as pd
 import argparse
+import time, datetime
 
 # theme_style=ft.TextThemeStyle.DISPLAY_LARGE
+jst_standard = datetime.timezone(datetime.timedelta(hours=9), 'JST')
 
 class DataProvider(object):
     def __init__(self, csv, random=False):
+        self.csv = csv
         self.counter = 0
         self.df = pd.read_csv(csv)
         if random is True:
@@ -31,7 +34,7 @@ class DataProvider(object):
 
 trial_data_provider = None
 test_data_provider = None
-eval_dict = {'eval':[], 'key': [], 'value': []}
+eval_dict = {'eval':[], 'key': [], 'value': [], 'start_time': [], 'end_time': [], 'path': []}
 
 class TopView(ft.View):
     def __init__(self):
@@ -89,7 +92,8 @@ class TestViewBase(ft.View):
         self.inst = ft.Text('いま聞き取った音声について，以下の5段階で評価してください', 
                             color=ft.colors.WHITE)
         self.inst.padding=ft.padding.only(top=200)
-        self.opinion.padding = ft.padding.only(left=1024, bottom=50)
+        #self.opinion.padding = ft.padding.only(left=1024, bottom=50)
+        self.opinion.padding = ft.padding.only(left=256, bottom=50)
         self.nextb = ft.ElevatedButton(content=ft.Text('次へ'), 
                                        on_click=self.clicked,
                                        disabled=True)
@@ -98,6 +102,8 @@ class TestViewBase(ft.View):
         self.key = key
         self.path = path
         self.value = None
+        self.start_time = None
+        self.end_time = None
 
     def setup(self, src):
         audio = ft.Audio(src=src, volume=1, balance=0, 
@@ -141,20 +147,23 @@ class TestView(TestViewBase):
     def __init__(self, key, path):
         
         super().__init__(key, path)
-
         global test_data_provider
-        self.reminder = ft.Text("残り：" + str(test_data_provider.remind()) + "/" + str(test_data_provider.__length__()))
+        self.q_number = ft.Text("No." + str(test_data_provider.counter) + " of " + str(test_data_provider.__length__()))
+        self.q_number.padding = ft.padding.only(bottom=100)
+        #self.reminder = ft.Text("残り：" + str(test_data_provider.remind()) + "/" + str(test_data_provider.__length__()))
 
         controls = [
+            self.q_number,
             self.play_inst,
             self.playb,
             self.audio,
             self.inst,
             self.opinion,
-            self.reminder,
+            #self.reminder,
             self.nextb
         ]
 
+        #time.sleep(1)
         super(TestViewBase, self).__init__("/testview", controls=controls)
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -164,12 +173,19 @@ class TestView(TestViewBase):
         if e.data == 'completed':
             self.inst.color=ft.colors.BLACK
             self.inst.update()
+            self.playb.disabled=True
+            self.playb.update()
+            global jst_standard
+            self.start_time = datetime.datetime.now(jst_standard).strftime('%Y/%m/%d %H:%M:%S')
 
     def clicked(self, e):
         global test_data_provider, eval_dict
-        eval_dict['eval'] = 'test'
+        eval_dict['eval'].append('test')
         eval_dict['key'].append(self.key)
         eval_dict['value'].append(self.value)
+        eval_dict['start_time'].append(self.start_time)
+        eval_dict['end_time'].append(self.end_time)
+        eval_dict['path'].append(test_data_provider.csv)
 
         try:
             key, path = test_data_provider.__next__()
@@ -183,6 +199,8 @@ class TestView(TestViewBase):
         self.value = e.data
         self.nextb.disabled=False
         self.nextb.update()
+        global jst_standard
+        self.end_time = datetime.datetime.now(jst_standard).strftime('%Y/%m/%d %H:%M:%S')
     
 class TrialView(TestViewBase):
     def __init__(self, key, path):
@@ -190,15 +208,17 @@ class TrialView(TestViewBase):
         super().__init__(key, path)
 
         global trial_data_provider
-
+        self.q_number = ft.Text("No." + str(trial_data_provider.counter) + " of " + str(trial_data_provider.__length__()))
+        self.q_number.padding = ft.padding.only(bottom=100)
         self.add_inst1 = ft.Text('まず，聴取する音を再生します．1回しか再生しないので注意してください．',
                                 color=ft.colors.RED)
         self.add_inst2 = ft.Text('再生が終わったら，いま聴取した音を評価します．',
                                 color=ft.colors.WHITE)
         self.add_inst2.padding=ft.padding.only(top=200)
 
-        self.reminder = ft.Text("残り：" + str(trial_data_provider.remind()) + "/" + str(trial_data_provider.__length__()))
+        #self.reminder = ft.Text("残り：" + str(trial_data_provider.remind()) + "/" + str(trial_data_provider.__length__()))
         controls = [
+            self.q_number,
             self.add_inst1,
             self.play_inst,
             self.playb,
@@ -206,10 +226,11 @@ class TrialView(TestViewBase):
             self.add_inst2,
             self.inst,
             self.opinion,
-            self.reminder,
+            #self.reminder,
             self.nextb
         ]
 
+        #time.sleep(1)
         super(TestViewBase, self).__init__("/trialview", controls=controls)
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -221,16 +242,23 @@ class TrialView(TestViewBase):
             self.inst.color=ft.colors.BLACK
             self.add_inst2.update()
             self.inst.update()
+            self.playb.disabled=True
+            self.playb.update()
+            global jst_standard
+            self.start_time = datetime.datetime.now(jst_standard).strftime('%Y/%m/%d %H:%M:%S')
 
     def clicked(self, e):
         global trial_data_provider, eval_dict
-        eval_dict['eval'] = 'trial'
+        eval_dict['eval'].append('trial')
         eval_dict['key'].append(self.key)
         eval_dict['value'].append(self.value)
+        eval_dict['start_time'].append(self.start_time)
+        eval_dict['end_time'].append(self.end_time)
+        eval_dict['path'].append(trial_data_provider.csv)
 
         try:
             key, path = trial_data_provider.__next__()
-            print(key)
+            #print(key)
             e.page.views.pop()
             e.page.views.append(TrialView(key, path))
             e.page.update()
@@ -241,6 +269,8 @@ class TrialView(TestViewBase):
         self.value = e.data
         self.nextb.disabled=False
         self.nextb.update()
+        global jst_standard 
+        self.end_time = datetime.datetime.now(jst_standard).strftime('%Y/%m/%d %H:%M:%S')
 
 def main(page: ft.Page):
     parser = argparse.ArgumentParser()
@@ -276,7 +306,7 @@ def main(page: ft.Page):
             elif page.route == '/intermview':
                 page.views.append(IntermView())
             elif page.route == '/lastview':
-                page.views.append(LastView(args.output))
+                page.views.append(LastView(args.output_csv))
 
     def view_pop(e):               
         nonlocal pop_flag
