@@ -82,13 +82,13 @@ class SliderComponent(ft.UserControl):
         print(self.slider_selected_value)
 
 def main(page: ft.Page):
-   component1 = SliderComponent('明瞭度', message0, min=1, max=5, divisions=8)
-   component2 = SliderComponent('大きさ', message1, min=1, max=5, divisions=4)
-   component3 = SliderComponent('抑揚', message1, min=1, max=5, divisions=4) 
-   component4 = SliderComponent('アクセント', message1, min=1, max=5, divisions=4) 
-   component5 = SliderComponent('速さ', message2, min=-3, max=3, value=0.0, divisions=6) 
+   component1 = SliderComponent('明瞭度', message0, min=1, max=5, divisions=4)
+   component2 = SliderComponent('声の大きさ', message1, min=1, max=5, divisions=4)
+   component3 = SliderComponent('抑揚（全体の音の高低）', message1, min=1, max=5, divisions=4) 
+   component4 = SliderComponent('アクセント（単語レベルの音の高低）', message1, min=1, max=5, divisions=4) 
+   #component5 = SliderComponent('速さ', message2, min=-2, max=2, value=0.0, divisions=4) 
 
-   page.title = 'Listening Test'
+   page.title = 'Quality Test'
    page.vertical_alignment = ft.MainAxisAlignment.CENTER
    page.add(component1)
    page.add(ft.Divider(height=10, thickness=2))
@@ -97,8 +97,8 @@ def main(page: ft.Page):
    page.add(component3)
    page.add(ft.Divider(height=10, thickness=2))
    page.add(component4)
-   page.add(ft.Divider(height=10, thickness=2))
-   page.add(component5)
+   #page.add(ft.Divider(height=10, thickness=2))
+   #page.add(component5)
 
 if __name__=="__main__":
     ft.app(target=main)
