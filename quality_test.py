@@ -276,8 +276,8 @@ class ViewBase(ft.View):
                                        disabled=True)
         self.playb.padding = ft.padding.only(top=50, bottom=100)        
 
-        self.component1 = SliderComponent('明瞭度　選択の目安「1:全くの了解不能」「2:ところどころわかる語がある」「3:半分くらいわかる」「4:ところどころわからない語がある」「5:よくわかる」', min=1, max=5, divisions=8)
-        self.component2 = SliderComponent('自然さ　選択の目安「1:全く不自然である」「2:顕著に不自然である」「3:明らかに不自然である」「4:やや不自然である」「5:全く自然である」　　　　　　' , min=1, max=5, divisions=8)
+        self.component1 = SliderComponent('明瞭度　選択の目安「1:全くの了解不能」「2:ところどころわかる語がある」「3:聞き手が話題を知っていればわかる（半分くらいわかる）」「4:ところどころわからない語がある」「5:よくわかる」', min=1, max=5, divisions=8)
+        self.component2 = SliderComponent('自然さ　選択の目安「1:全く不自然である（自然な要素がない）」「2:顕著に不自然である」「3:明らかに不自然である」「4:やや不自然である」「5:全く自然である（不自然な要素がない）」　　　' , min=1, max=5, divisions=8)
         self.component3 = CBComponent()
 
         self.nextb = ft.ElevatedButton(content=ft.Text('次へ'), 
