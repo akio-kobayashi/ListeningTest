@@ -461,7 +461,7 @@ def main(page: ft.Page):
     parser = argparse.ArgumentParser()
     parser.add_argument('--test_csv', type=str, required=True)
     parser.add_argument('--trial_csv', type=str, required=True)
-    parser.add_argument('--output_csv', type=str, default="output.csv")
+    parser.add_argument('--output_csv', type=str, default="deaf_output.csv")
 
     args=parser.parse_args()
 
