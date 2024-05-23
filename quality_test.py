@@ -44,20 +44,24 @@ eval_dict = {'eval':[], 'key': [], 'intelligiblity': [], 'naturalness': [], 'cb1
 class CBComponent(ft.UserControl):
     def __init__(self):
         super().__init__()
-        self.cb1 = ft.Checkbox(label='発音', value=False, disabled=False)
-        self.cb2 = ft.Checkbox(label='速さ', value=False, disabled=False)
-        self.cb3 = ft.Checkbox(label='単語のアクセント', value=False, disabled=False)
-        self.cb4 = ft.Checkbox(label='全体の抑揚', value=False, disabled=False)
+        self.cb1 = ft.Checkbox(label='発音', value=False, disabled=True)
+        self.cb2 = ft.Checkbox(label='速さ', value=False, disabled=True)
+        self.cb3 = ft.Checkbox(label='単語のアクセント', value=False, disabled=True)
+        self.cb4 = ft.Checkbox(label='全体の抑揚', value=False, disabled=True)
 
     def get_values(self):
         return self.cb1.value, self.cb2.value, self.cb3.value, self.cb4.value
 
-    def enabled(self):
-        self.cb1.disabled=False
-        self.cb2.disabled=False
-        self.cb3.disabled=False
-        self.cb4.disabled=False
-        
+    def enabled(self, enable):
+        self.cb1.disabled=not enable
+        self.cb1.update()
+        self.cb2.disabled=not enable
+        self.cb2.update()
+        self.cb3.disabled=not enable
+        self.cb3.update()
+        self.cb4.disabled=not enable
+        self.cb4.update()
+
     def build(self):
         title = ft.Text(
             spans=[
@@ -89,14 +93,7 @@ class SliderComponent(ft.UserControl):
         self.max=max
         self.value=value
 
-    def build(self):
-        self.slider_selected_value = self.value
-        self.slider_status = ft.Text(self.slider_selected_value)
-
-        return ft.Container(
-            ft.Column([
-                self.title,
-                ft.Slider(
+        self.slider=ft.Slider(
                     min=self.min,
                     max=self.max,
                     value=self.value,
@@ -108,14 +105,21 @@ class SliderComponent(ft.UserControl):
                     on_change_end=self.handle_change_end,
                     on_change = self.handle_change,
                     round=1,
-                    label='{value}'
-                ),
+                    label='{value}',
+                    disabled=True
+                )
+    
+    def build(self):
+        self.slider_selected_value = self.value
+        self.slider_status = ft.Text(self.slider_selected_value)
+
+        return ft.Container(
+            ft.Column([
+                self.title,
+                self.slider,
                 self.slider_status
             ])
         )
-
-    def enabled(self):
-        self.slider.disabled=False
 
     def handle_change_start(self, e):
         try:
@@ -141,6 +145,9 @@ class SliderComponent(ft.UserControl):
         self.value = e.control.value        
         #print(self.slider_selected_value)
 
+    def enabled(self, enable):
+        self.slider.disabled=not enable
+        self.slider.update()
 
     def get_value(self):
         return self.value
@@ -294,13 +301,13 @@ class ViewBase(ft.View):
     
     def state_changed(self, e):
         if e.data == 'completed':
-            self.playb.disabled=False
+            self.playb.disabled=True
             self.playb.update()
             self.nextb.disabled=False
             self.nextb.update()
-            #self.component1.enabled()
-            #self.component2.enabled()
-            #self.component3.enabled()
+            self.component1.enabled(True)
+            self.component2.enabled(True)
+            self.component3.enabled(True)
         elif e.data == 'playing':
             self.playb.disabled=True
             self.playb.update()
