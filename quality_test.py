@@ -8,7 +8,7 @@ import time, datetime
 #          '5: 全くの了解不能']
 #message1=['1: 全くの自然である（不自然な要素がない）', '2: やや不自然な要素がある', '3: 明らかに不自然である', '4: 顕著に不自然である', '5: 全く不自然である（自然な要素がない）']
 #message2=['-2: 速い', '-1: やや速い', '0: 自然な速さである', '1: ややゆっくりしている', '2: ゆっくりしている',]
-
+paths = ['/Users/akio/Documents/GitHub/ListeningTest/jnas_norm/NF009061.wav', '/Users/akio/Documents/GitHub/ListeningTest/jnas_norm/NM031061.wav', '/Users/akio/Documents/GitHub/ListeningTest/jnas_norm/NM040095.wav']
 jst_standard = datetime.timezone(datetime.timedelta(hours=9), 'JST')
 
 class DataProvider(object):
@@ -152,6 +152,53 @@ class SliderComponent(ft.UserControl):
     def get_value(self):
         return self.value
 
+class VolumeAdjustView(ft.View):
+    def prepare(self, path):
+        audio = ft.Audio(src=path, volume=1, balance=0, autoplay=False)
+        #controls.append(audio1)
+        #controls.append(ft.Text('「再生」をクリックして音声を聞き取ってください。'))
+        playb = ft.ElevatedButton(content=ft.Text("再生"), 
+                                  on_click=lambda _: audio.play(), 
+                                  disabled=False)
+        playb.padding = ft.padding.only(top=100, bottom=100)
+        #controls.append(playb1)
+        return audio, playb
+    def __init__(self, paths):
+        controls = []
+        controls.append(ft.Text(spans=[
+            ft.TextSpan('ヘッドホンのボリュームを調整します')
+        ]))
+
+        audio1, playb1 = self.prepare(paths[0])
+        audio2, playb2 = self.prepare(paths[1])
+        audio3, playb3 = self.prepare(paths[2])
+
+        controls.append(audio1)
+        controls.append(ft.Text('サンプル①の再生'))
+        controls.append(playb1)
+        controls.append(audio2)
+        controls.append(ft.Text('サンプル②の再生'))
+        controls.append(playb2)
+        controls.append(audio3)
+        controls.append(ft.Text('サンプル③の再生'))
+        controls.append(playb3)
+
+        controls.append(ft.Text(' '))
+        controls.append(ft.Text('調整したら「次へ」をクリックします。'))
+
+        nextb = ft.ElevatedButton(content=ft.Text('次へ'), on_click=self.clicked)
+        nextb.padding = ft.padding.only(top=200, bottom=200)
+            
+        controls.append(nextb)
+
+        super().__init__("/volumeadjustview", controls=controls)
+        self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.vertical_alignment = ft.MainAxisAlignment.CENTER
+
+
+    def clicked(self, e):
+        e.page.go("/topview")
+
 class TopView(ft.View):
     def __init__(self):
         global test_data_provider, trial_data_provider
@@ -204,7 +251,7 @@ class TopView(ft.View):
             ft.Text(
                 spans=[
                     ft.TextSpan(
-                        '自然さ：声の大きさの変化について「1:全く不自然である」から「5:全く自然である」までの間で評価　　　',
+                        '自然さ：聞き取った音声について「1:全く不自然である」から「5:全く自然である」までの間で評価　　　　',
                         ft.TextStyle(size=16, weight=ft.FontWeight.BOLD)
                     )
                 ]
@@ -458,12 +505,6 @@ class TrialView(ViewBase):
         except StopIteration:
             e.page.go('/intermview')
 
-    #def value_changed(self, e):
-    #    self.nextb.disabled=False
-    #    self.nextb.update()
-    #    global jst_standard 
-    #    self.end_time = datetime.datetime.now(jst_standard).strftime('%Y/%m/%d %H:%M:%S')
-
 def main(page: ft.Page):
     parser = argparse.ArgumentParser()
     parser.add_argument('--test_csv', type=str, required=True)
@@ -488,6 +529,8 @@ def main(page: ft.Page):
         else:
             if page.route == '/':
                 page.views.clear()
+                page.views.append(VolumeAdjustView(paths))
+            elif page.route == '/topview':
                 page.views.append(TopView())
             elif page.route == '/testview':
                 key, path = test_data_provider.__next__()
@@ -499,6 +542,8 @@ def main(page: ft.Page):
                 page.views.append(IntermView())
             elif page.route == '/lastview':
                 page.views.append(LastView(args.output_csv))
+            elif page.route == '/volumeadjustview':
+                page.views.append(VolumeAdjustView(paths))
 
     def view_pop(e):               
         nonlocal pop_flag
